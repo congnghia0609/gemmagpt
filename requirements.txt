@@ -3,3 +3,4 @@ numpy == 1.24.4
 immutabledict == 4.1.0
 sentencepiece == 0.1.99
 pytorch == 2.1.2
+sanic == 23.12.1
