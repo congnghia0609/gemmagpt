@@ -19,32 +19,32 @@ from sanic.response import json
 logger = getLogger(__name__)
 
 
-@contextlib.contextmanager
-def _set_default_tensor_type(dtype: torch.dtype):
-    """Sets the default torch dtype to the given dtype."""
-    torch.set_default_dtype(dtype)
-    yield
-    torch.set_default_dtype(torch.float)
-
-
-# Construct the model config.
-gpt_config = GPTConfig()
-model_config = config.get_model_config(gpt_config.variant)
-model_config.dtype = "float32" if gpt_config.device == "cpu" else "float16"
-model_config.quant = gpt_config.quant
-
-# Seed random.
-random.seed(gpt_config.seed)
-np.random.seed(gpt_config.seed)
-torch.manual_seed(gpt_config.seed)
-
-# Create the model and load the weights.
-device = torch.device(gpt_config.device)
-with _set_default_tensor_type(model_config.get_dtype()):
-    model = gemma_model.GemmaForCausalLM(model_config)
-    model.load_weights(gpt_config.ckpt)
-    model = model.to(device).eval()
-print("=======>>>>>>> Model loading done")
+# @contextlib.contextmanager
+# def _set_default_tensor_type(dtype: torch.dtype):
+#     """Sets the default torch dtype to the given dtype."""
+#     torch.set_default_dtype(dtype)
+#     yield
+#     torch.set_default_dtype(torch.float)
+#
+#
+# # Construct the model config.
+# gpt_config = GPTConfig()
+# model_config = config.get_model_config(gpt_config.variant)
+# model_config.dtype = "float32" if gpt_config.device == "cpu" else "float16"
+# model_config.quant = gpt_config.quant
+#
+# # Seed random.
+# random.seed(gpt_config.seed)
+# np.random.seed(gpt_config.seed)
+# torch.manual_seed(gpt_config.seed)
+#
+# # Create the model and load the weights.
+# device = torch.device(gpt_config.device)
+# with _set_default_tensor_type(model_config.get_dtype()):
+#     model = gemma_model.GemmaForCausalLM(model_config)
+#     model.load_weights(gpt_config.ckpt)
+#     model = model.to(device).eval()
+# print("=======>>>>>>> Model loading done")
 
 # Generate the response.
 # result = model.generate(args.prompt, device, output_len=args.output_len)
@@ -53,6 +53,11 @@ print("=======>>>>>>> Model loading done")
 # Config for Web Server Sanic
 port = 24315
 NDEBUG = True
+# Start Web Sever Sanic
+app = Sanic("GemmaGPT", strict_slashes=True)
+# Route some file and client resources
+# https://sanic.dev/en/guide/how-to/static-redirects.html
+# app.static('/files/', 'files')
 
 
 def _add_cors_headers(response, methods: Iterable[str]) -> None:
@@ -84,17 +89,6 @@ def add_cors_headers(request, response):
 # Những phiên bản Sanic mới nhất yêu cầu Python versions 3.8 – 3.11
 def start():
     try:
-        # Start Web Sever Sanic
-        app = Sanic("GemmaGPT")
-
-        # Add Router
-        app.add_route(chat_gemma_gpt, '/api/v1/chat', methods=["POST", "OPTIONS"], )
-
-        # Route some file and client resources
-        # https://sanic.dev/en/guide/how-to/static-redirects.html
-        app.static('/files/', 'files')
-        app.static('/', 'views')
-
         # Fill in CORS headers
         app.register_middleware(add_cors_headers, "response")
         # port = get_port()
@@ -107,10 +101,21 @@ def start():
         print("~~~~~~~~~~~~~~~~ WebServer Exit")
 
 
+# @app.get("/")
+# def index(request):
+#     return render("index.html", context={}, status=200)
+
+
+# Api chat GemmaGPT
+# curl -X POST -H 'Content-Type: application/json' \
+#   -i 'http://localhost:24315/api/v1/chat' \
+#   --data '{"prompt": "Where can I learn English?", "output_len": 100}'
+@app.route('/api/v1/chat', methods=["POST", "OPTIONS"])
 def chat_gemma_gpt(req):
     try:
+        # print(req.body)
         data = req.json
-        # print(data)
+        print(data)
         prompt = data['prompt'] if 'prompt' in data else ""
         # print(prompt)
         if not prompt:
@@ -119,7 +124,8 @@ def chat_gemma_gpt(req):
         # print(output_len)
 
         # Generate the response.
-        result = model.generate(prompt, device, output_len=output_len)
+        # result = model.generate(prompt, device, output_len=output_len)
+        result = "Ket qua model generate"
 
         return json({
             'err': 0,
