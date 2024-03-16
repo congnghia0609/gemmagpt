@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="/files/favicon.ico">
-  <title>Vistral Chat Demo</title>
+  <title>GemmaGPT Chat Demo</title>
   <!-- https://tailwindcss.com/docs/font-size -->
   <script src="/files/tailwind.js"></script>
   <script src="/files/vue.global.js"></script>
@@ -17,17 +17,17 @@
     <div class="max-w-2xl mx-auto">
 
       <div class="mb-4">
-        <h1 class="text-4xl font-bold text-center">Vistral Chat Demo</h1>
+        <h1 class="text-4xl font-bold text-center">GemmaGPT Chat Demo</h1>
         <div class="mt-6">
           <div class="flex items-center space-x-4 text-left justify-start">
             <div class="flex-shrink-0">
               <img class="w-8 h-8 rounded-full"
                 src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTagONv1r-0HPnlnWClF12amS_KdrPX83zlhcXHyek&s"
-                alt="Vistral Icon" />
+                alt="GemmaGPT Icon" />
             </div>
             <div class="flex-1 min-w-0">
               <h2 class="text-xl text-gray-800 break-normal whitespace-pre-line text-left justify-start">
-                Vistral là trợ lí Tiếng Việt nhiệt tình và trung thực. Luôn trả lời theo cách hữu ích nhất có thể, đồng thời giữ an toàn.
+                GemmaGPT là trợ lí Tiếng Anh, dựa trên mô hình ngôn ngữ lớn sử dụng những kỹ thuật tương tự như Gemini nhưng nhẹ hơn.
               </h2>
             </div>
           </div>
@@ -67,7 +67,7 @@
                 <div class="flex-shrink-0">
                   <img v-if="message.role === 'assistant'" class="w-8 h-8 rounded-full"
                     src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTagONv1r-0HPnlnWClF12amS_KdrPX83zlhcXHyek&s"
-                    alt="Vistral Icon" />
+                    alt="GemmaGPT Icon" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-base text-gray-800 break-normal whitespace-pre-line"
@@ -92,17 +92,13 @@
     ref
   } = Vue;
 
-  // Local Vistral Chat
-  const VISTRAL_AI_ENDPOINT = 'http://localhost:8000/v1'
+  // Local GemmaGPT Chat
+  const GEMMA_GPT_AI_ENDPOINT = 'http://localhost:24315'
 
   createApp({
     setup() {
       const userInput = ref('');
       const messages = ref([]);
-      // const messages = ref([{
-      //   role: 'system',
-      //   content: "Vistral là trợ lí Tiếng Việt nhiệt tình và trung thực. Luôn trả lời theo cách hữu ích nhất có thể, đồng thời giữ an toàn."
-      // }]);
       const isLoading = ref(false);
 
       const messageClasses = (role) => ({
@@ -119,22 +115,17 @@
           role: 'user',
           content: userInput.value
         });
-        let msgUser = [{
-          role: 'user',
-          content: userInput.value
-        }];
+        let prompt = userInput.value;
 
         try {
           isLoading.value = true
           userInput.value = '';
 
-          // Send API request to Vistral Chat endpoint
+          // Send API request to GemmaGPT Chat endpoint
           const response = await axios.post(
-            `${VISTRAL_AI_ENDPOINT}/chat/completions`, {
-              model: 'ggml-vistral-7B-chat-q4_0',
-              messages: msgUser,
-              temperature: 0.9,
-              max_tokens: 500,
+            `${GEMMA_GPT_AI_ENDPOINT}/api/v1/chat`, {
+              prompt: prompt,
+              output_len: 100,
             }, {
               headers: {
                 'Content-Type': 'application/json',
@@ -144,32 +135,18 @@
 
           /* response
           {
-            "id": "chatcmpl-5a34f72e-0edc-4ff8-980b-df4316ea3da0",
-            "object": "chat.completion",
-            "created": 1707821154,
-            "model": "ggml-vistral-7B-chat-q4_0",
-            "choices": [
-                {
-                    "index": 0,
-                    "message": {
-                        "content": "Bạn có thể học tiếng Anh tại thư viện, các trung tâm ngoại ngữ và những người bản xứ. Ngoài ra, bạn cũng có thể tham gia vào cộng đồng nói tiếng Anh trực tuyến để thực hành kỹ năng của mình với mọi người từ khắp nơi trên thế giới.",
-                        "role": "assistant"
-                    },
-                    "finish_reason": "stop"
-                }
-            ],
-            "usage": {
-                "prompt_tokens": 74,
-                "completion_tokens": 61,
-                "total_tokens": 135
-            }
+            "err": 0,
+            "msg": "success,
+            "prompt": "Where can I learn English?",
+            "output_len": 100,
+            "result": "Bạn có thể học tiếng Anh tại thư viện, các trung tâm ngoại ngữ và những người bản xứ. Ngoài ra, bạn cũng có thể tham gia vào cộng đồng nói tiếng Anh trực tuyến để thực hành kỹ năng của mình với mọi người từ khắp nơi trên thế giới.",
           }
           */
 
-          // Append Vistral response
+          // Append GemmaGPT response
           messages.value.push({
             role: 'assistant',
-            content: response.data.choices[0].message.content
+            content: response.data.result
           });
         } catch (error) {
           console.error('There was an error with the API request', error);
