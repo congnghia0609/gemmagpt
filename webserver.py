@@ -15,6 +15,8 @@ from logging import getLogger
 from typing import Iterable
 from sanic import Sanic
 from sanic.response import json
+from sanic_ext import Extend
+from sanic_ext import cors
 
 logger = getLogger(__name__)
 
@@ -50,16 +52,6 @@ logger = getLogger(__name__)
 # result = model.generate(args.prompt, device, output_len=args.output_len)
 
 
-# Config for Web Server Sanic
-port = 24315
-NDEBUG = True
-# Start Web Sever Sanic
-app = Sanic("GemmaGPT", strict_slashes=True)
-# Route some file and client resources
-# https://sanic.dev/en/guide/how-to/static-redirects.html
-# app.static('/files/', 'files')
-
-
 def _add_cors_headers(response, methods: Iterable[str]) -> None:
     allow_methods = list(set(methods))
     if "OPTIONS" not in allow_methods:
@@ -85,12 +77,31 @@ def add_cors_headers(request, response):
     _add_cors_headers(response, methods)
 
 
+# Config for Web Server Sanic
+port = 24315
+NDEBUG = True
+# Start Web Sever Sanic
+app = Sanic("GemmaGPT", strict_slashes=True)
+# Route some file and client resources
+# https://sanic.dev/en/guide/how-to/static-redirects.html
+# app.static('/files/', 'files')
+# Fill in CORS headers
+# app.register_middleware(add_cors_headers, "response")
+# https://sanic.dev/en/plugins/sanic-ext/http/cors.html
+app.config.CORS_ORIGINS = "*"  # "http://localhost:8888,http://localhost:24315"
+# app.config.CORS_SUPPORTS_CREDENTIALS = True
+app.config.CORS_METHODS = "GET,POST,PUT,DELETE,OPTIONS"
+app.config.CORS_ALLOW_HEADERS = "origin,content-type,accept,authorization,x-xsrf-token,x-request-id"
+app.config.CORS_MAX_AGE = 63072000
+Extend(app)
+
+
 # Web Server Sanic Version mới nhất hiện tại == 23.12.1
 # Những phiên bản Sanic mới nhất yêu cầu Python versions 3.8 – 3.11
 def start():
     try:
-        # Fill in CORS headers
-        app.register_middleware(add_cors_headers, "response")
+        # # Fill in CORS headers
+        # app.register_middleware(add_cors_headers, "response")
         # port = get_port()
         print(f'=====>>>>> GemmaGPT Sanic is running on port={port} with mode NDEBUG={NDEBUG}...')
         logger.info(f'=====>>>>> GemmaGPT Sanic is running on port={port} with mode NDEBUG={NDEBUG}...')
@@ -111,6 +122,7 @@ def start():
 #   -i 'http://localhost:24315/api/v1/chat' \
 #   --data '{"prompt": "Where can I learn English?", "output_len": 100}'
 @app.route('/api/v1/chat', methods=["POST", "OPTIONS"])
+@cors(origins="http://localhost:8888")
 def chat_gemma_gpt(req):
     try:
         # print(req.body)
