@@ -35,6 +35,12 @@ docker run -t --rm \
 ## Dùng tool pycharm thiết lập môi trường ảo bằng conda3 với Python 3.10.13 và pytorch == 2.1.2 rồi chạy lệnh ở dưới.
 ## main.py được clone từ scripts/run.py
 python main.py --ckpt=/home/nghiatc/lab/labGemma/pytorch-2b-it/gemma-2b-it.ckpt --variant=2b --output_len=300 --prompt="The meaning of life is"
+
+## Web
+python3 -m http.server 8888
+
+## API
+python main.py
 ```
 
 ### Run Gemma inference on GPU.

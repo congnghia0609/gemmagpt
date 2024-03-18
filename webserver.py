@@ -4,13 +4,14 @@
 """
 
 
-import contextlib
-import random
-import numpy as np
-import torch
-from gemma import config
-from gemma import model as gemma_model
-from config_gpt import GPTConfig
+# import contextlib
+# import random
+# import numpy as np
+# import torch
+# from gemma import config
+# from gemma import model as gemma_model
+# from config_gpt import GPTConfig
+import gemma_gpt
 from logging import getLogger
 from typing import Iterable
 from sanic import Sanic
@@ -27,8 +28,8 @@ logger = getLogger(__name__)
 #     torch.set_default_dtype(dtype)
 #     yield
 #     torch.set_default_dtype(torch.float)
-#
-#
+
+
 # # Construct the model config.
 # gpt_config = GPTConfig()
 # model_config = config.get_model_config(gpt_config.variant)
@@ -42,10 +43,11 @@ logger = getLogger(__name__)
 #
 # # Create the model and load the weights.
 # device = torch.device(gpt_config.device)
-# with _set_default_tensor_type(model_config.get_dtype()):
-#     model = gemma_model.GemmaForCausalLM(model_config)
-#     model.load_weights(gpt_config.ckpt)
-#     model = model.to(device).eval()
+# # Sets the default torch dtype to the given dtype.
+# torch.set_default_dtype(model_config.get_dtype())
+# model = gemma_model.GemmaForCausalLM(model_config)
+# model.load_weights(gpt_config.ckpt)
+# model = model.to(device).eval()
 # print("=======>>>>>>> Model loading done")
 
 # Generate the response.
@@ -122,7 +124,7 @@ def start():
 #   -i 'http://localhost:24315/api/v1/chat' \
 #   --data '{"prompt": "Where can I learn English?", "output_len": 100}'
 @app.route('/api/v1/chat', methods=["POST", "OPTIONS"])
-@cors(origins="http://localhost:8888")
+@cors(origin="*")
 def chat_gemma_gpt(req):
     try:
         # print(req.body)
@@ -137,7 +139,9 @@ def chat_gemma_gpt(req):
 
         # Generate the response.
         # result = model.generate(prompt, device, output_len=output_len)
-        result = "Ket qua model generate"
+        model = gemma_gpt.GemmaGPT()
+        result = model.generate(prompt, output_len)
+        # result = "Ket qua model generate"
 
         return json({
             'err': 0,
